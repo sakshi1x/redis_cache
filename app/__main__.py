@@ -38,13 +38,22 @@ app.include_router(auth_router, prefix="/api/v1")
 async def root():
     """Root endpoint"""
     return {
-        "message": "Employee API with Redis Sessions",
+        "message": "Employee API with Redis Hash Profiles",
         "version": settings.app_version,
         "docs": "/docs",
         "endpoints": {
             "signup": "POST /api/v1/auth/signup",
             "login": "POST /api/v1/auth/login", 
-            "ask": "POST /api/v1/auth/ask"
+            "ask": "POST /api/v1/auth/ask",
+            "get_profile": "GET /api/v1/auth/profile",
+            "update_profile": "PUT /api/v1/auth/profile",
+            "get_stats": "GET /api/v1/auth/stats"
+        },
+        "features": {
+            "redis_hash_profiles": "Enhanced user profiles with Redis Hash data structure",
+            "user_statistics": "Track login count, questions asked, and activity",
+            "profile_management": "Update department and role information",
+            "persistent_storage": "Data persists across server restarts"
         }
     }
 
