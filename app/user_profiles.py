@@ -76,10 +76,19 @@ class RedisUserProfiles:
     def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
         """Find user profile by username"""
         try:
-            # Get all user keys
+            # Get all user profile keys (only hashes, not streams or sorted sets)
             user_keys = self.redis_client.keys("user:*")
             
             for key in user_keys:
+                # Skip keys that are not user profiles (streams, analytics, etc.)
+                if ":" in key.split("user:")[1]:  # Skip user:EMP001:questions, user:EMP001:analytics
+                    continue
+                
+                # Check if the key is a hash (user profile)
+                key_type = self.redis_client.type(key)
+                if key_type != "hash":
+                    continue
+                
                 profile = self.redis_client.hgetall(key)
                 if profile.get("username") == username:
                     # Convert numeric strings back to integers
@@ -161,6 +170,15 @@ class RedisUserProfiles:
             users = []
             
             for key in user_keys:
+                # Skip keys that are not user profiles (streams, analytics, etc.)
+                if ":" in key.split("user:")[1]:  # Skip user:EMP001:questions, user:EMP001:analytics
+                    continue
+                
+                # Check if the key is a hash (user profile)
+                key_type = self.redis_client.type(key)
+                if key_type != "hash":
+                    continue
+                
                 profile = self.redis_client.hgetall(key)
                 if profile:
                     # Convert numeric strings back to integers

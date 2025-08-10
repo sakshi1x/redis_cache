@@ -38,7 +38,7 @@ app.include_router(auth_router, prefix="/api/v1")
 async def root():
     """Root endpoint"""
     return {
-        "message": "Employee API with Redis Hash Profiles",
+        "message": "Employee API with Redis Hash Profiles & Streams Analytics",
         "version": settings.app_version,
         "docs": "/docs",
         "endpoints": {
@@ -47,13 +47,30 @@ async def root():
             "ask": "POST /api/v1/auth/ask",
             "get_profile": "GET /api/v1/auth/profile",
             "update_profile": "PUT /api/v1/auth/profile",
-            "get_stats": "GET /api/v1/auth/stats"
+            "get_stats": "GET /api/v1/auth/stats",
+            "get_analytics": "GET /api/v1/auth/analytics",
+            "get_history": "GET /api/v1/auth/history",
+            "search_questions": "POST /api/v1/auth/search",
+            "time_analytics": "GET /api/v1/auth/analytics/time-based",
+            "global_analytics": "GET /api/v1/auth/analytics/global",
+            "category_analytics": "GET /api/v1/auth/analytics/category/{category}"
         },
         "features": {
             "redis_hash_profiles": "Enhanced user profiles with Redis Hash data structure",
+            "redis_streams_history": "Question history tracking with Redis Streams",
+            "redis_sorted_sets_analytics": "Time-based analytics with Redis Sorted Sets",
             "user_statistics": "Track login count, questions asked, and activity",
             "profile_management": "Update department and role information",
+            "question_search": "Search through question history",
+            "category_analytics": "Analytics by question categories",
+            "time_based_analytics": "Hourly activity distribution",
+            "global_analytics": "System-wide question analytics",
             "persistent_storage": "Data persists across server restarts"
+        },
+        "redis_data_structures": {
+            "hashes": "User profiles with multiple fields",
+            "streams": "Question history with event logging",
+            "sorted_sets": "Time-based analytics and rankings"
         }
     }
 
