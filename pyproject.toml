@@ -1,11 +1,11 @@
 [project]
 name = "employee-api-redis-sessions"
 version = "1.0.0"
-description = "Simple Employee API with Redis session management"
+description = "Simple Employee API with Redis session management and semantic caching"
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
 ]
-readme = "SESSION_README.md"
+
 requires-python = ">=3.8.1"
 classifiers = [
     "Development Status :: 4 - Beta",

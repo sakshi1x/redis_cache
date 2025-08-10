@@ -1,23 +1,15 @@
-import json
 import secrets
 from typing import Optional, Dict, Any
 from fastapi import Request, Response
-from fastapi.responses import JSONResponse
-import redis
-from app.config import settings
+from app.core.config import settings
+from app.services.caching.redis_client import RedisStringClient
 
 
 class RedisSession:
-    """Simple Redis-based session management"""
+    """Simple Redis-based session management using base client"""
     
     def __init__(self):
-        self.redis_client = redis.Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            db=settings.redis_db,
-            password=settings.redis_password,
-            decode_responses=True
-        )
+        self.redis_client = RedisStringClient()
         self.secret = settings.session_secret
         self.expire_seconds = settings.session_expire_seconds
     
@@ -27,47 +19,29 @@ class RedisSession:
     
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get session data from Redis"""
-        try:
-            data = self.redis_client.get(f"session:{session_id}")
-            if data:
-                return json.loads(data)
-            return None
-        except Exception:
-            return None
+        key = self.redis_client._format_key(settings.SESSION_KEY_PATTERN, session_id=session_id)
+        return self.redis_client.get_json(key)
     
     def set_session(self, session_id: str, data: Dict[str, Any]) -> bool:
         """Set session data in Redis"""
-        try:
-            self.redis_client.setex(
-                f"session:{session_id}",
-                self.expire_seconds,
-                json.dumps(data)
-            )
-            return True
-        except Exception:
-            return False
+        key = self.redis_client._format_key(settings.SESSION_KEY_PATTERN, session_id=session_id)
+        return self.redis_client.set_json(key, data, self.expire_seconds)
     
     def delete_session(self, session_id: str) -> bool:
         """Delete session from Redis"""
-        try:
-            self.redis_client.delete(f"session:{session_id}")
-            return True
-        except Exception:
-            return False
+        key = self.redis_client._format_key(settings.SESSION_KEY_PATTERN, session_id=session_id)
+        return self.redis_client.delete_key(key)
     
     def find_session_by_username(self, username: str) -> Optional[tuple[str, Dict[str, Any]]]:
         """Find existing session by username"""
-        try:
-            # Get all session keys
-            session_keys = self.redis_client.keys("session:*")
-            for key in session_keys:
-                session_id = key.replace("session:", "")
-                data = self.get_session(session_id)
-                if data and data.get("username") == username:
-                    return session_id, data
-            return None
-        except Exception:
-            return None
+        session_keys = self.redis_client.get_keys_by_pattern("session:*")
+        
+        for key in session_keys:
+            session_id = key.replace("session:", "")
+            data = self.get_session(session_id)
+            if data and data.get("username") == username:
+                return session_id, data
+        return None
 
 
 # Global session instance
