@@ -245,20 +245,7 @@ pytest tests/unit/test_utils.py
 
 ## 📦 Development
 
-### Code Quality
-```bash
-# Format code
-black app/
 
-# Sort imports
-isort app/
-
-# Lint code
-flake8 app/
-
-# Type checking
-mypy app/
-```
 
 ### Project Structure
 ```
