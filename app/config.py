@@ -6,9 +6,9 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # API Configuration
-    app_name: str = "FastAPI Question Service"
+    app_name: str = "Employee API with Redis Sessions"
     app_version: str = "1.0.0"
-    app_description: str = "A structured FastAPI application with question-answering capabilities"
+    app_description: str = "Simple Employee API with Redis session management"
     
     # Server Configuration
     host: str = "0.0.0.0"
@@ -17,6 +17,16 @@ class Settings(BaseSettings):
     
     # Logging Configuration
     log_level: str = "INFO"
+    
+    # Redis Configuration
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_password: Optional[str] = None
+    
+    # Session Configuration
+    session_secret: str = "cool cool"
+    session_expire_seconds: int = 3600  # 1 hour
     
     class Config:
         env_file = ".env"

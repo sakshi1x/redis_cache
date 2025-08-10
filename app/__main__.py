@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import router
+from app.auth_routes import router as auth_router
 
 # Configure logging
 logging.basicConfig(
@@ -31,17 +31,21 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1")
 
 
 @app.get("/")
 async def root():
     """Root endpoint"""
     return {
-        "message": "Welcome to FastAPI Question Service",
+        "message": "Employee API with Redis Sessions",
         "version": settings.app_version,
         "docs": "/docs",
-        "health": "/api/v1/health"
+        "endpoints": {
+            "signup": "POST /api/v1/auth/signup",
+            "login": "POST /api/v1/auth/login", 
+            "ask": "POST /api/v1/auth/ask"
+        }
     }
 
 
