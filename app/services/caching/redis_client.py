@@ -1,5 +1,6 @@
 import json
 import time
+import re
 from typing import Optional, Dict, Any, List, Union
 import redis
 from app.config import settings
@@ -16,6 +17,7 @@ class RedisBaseClient:
             password=settings.redis_password,
             decode_responses=True
         )
+        self._key_prefix = self._generate_key_prefix()
     
     def _safe_execute(self, operation: str, func, *args, **kwargs) -> Any:
         """Safely execute Redis operations with error handling"""
@@ -28,6 +30,40 @@ class RedisBaseClient:
     def _format_key(self, pattern: str, **kwargs) -> str:
         """Format Redis key using pattern and parameters"""
         return pattern.format(**kwargs)
+    
+    def _generate_key_prefix(self) -> str:
+        """Generate a normalized app prefix for hierarchical Redis keys.
+        Example: app name "Employee API with Redis Sessions" -> "employee_api_with_redis_sessions"
+        """
+        app_name = getattr(settings, "app_name", "app")
+        slug = re.sub(r"[^a-z0-9]+", "_", app_name.strip().lower())
+        slug = slug.strip("_") or "app"
+        return slug
+
+    def build_key(self, module: str, entity: str, entity_id: Optional[str] = None) -> str:
+        """Build hierarchical Redis key: app:module:entity[:id]"""
+        parts = [self._key_prefix, module, entity]
+        if entity_id is not None and entity_id != "":
+            parts.append(str(entity_id))
+        return ":".join(parts)
+
+    def build_pattern(self, module: str, entity: str, entity_id_wildcard: str = "*") -> str:
+        """Build hierarchical Redis key pattern with wildcard id: app:module:entity:*"""
+        return ":".join([self._key_prefix, module, entity, entity_id_wildcard])
+
+    def build_key_parts(self, *parts: str) -> str:
+        """Build a Redis key from arbitrary ordered parts anchored by app prefix.
+        Example: build_key_parts("user", user_id, "profile") -> app:user:{id}:profile
+        """
+        normalized_parts = [str(p) for p in parts if p is not None and p != ""]
+        return ":".join([self._key_prefix] + normalized_parts)
+
+    def build_pattern_parts(self, *parts: str) -> str:
+        """Build a Redis key pattern from parts, allowing '*' anywhere.
+        Example: build_pattern_parts("user", "*", "questions") -> app:user:*:questions
+        """
+        normalized_parts = [str(p) for p in parts if p is not None and p != ""]
+        return ":".join([self._key_prefix] + normalized_parts)
     
     def _convert_numeric_fields(self, data: Dict[str, Any], 
                                numeric_fields: List[str]) -> Dict[str, Any]:

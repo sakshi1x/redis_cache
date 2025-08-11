@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # API Configuration
-    app_name: str = "Employee API with Redis Sessions"
+    app_name: str = "redis_employee"
     app_version: str = "1.0.0"
     app_description: str = "Simple Employee API with Redis session management"
     

@@ -19,25 +19,27 @@ class RedisSession:
     
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get session data from Redis"""
-        key = self.redis_client._format_key(settings.SESSION_KEY_PATTERN, session_id=session_id)
+        key = self.redis_client.build_key("auth", "session", session_id)
         return self.redis_client.get_json(key)
     
     def set_session(self, session_id: str, data: Dict[str, Any]) -> bool:
         """Set session data in Redis"""
-        key = self.redis_client._format_key(settings.SESSION_KEY_PATTERN, session_id=session_id)
+        key = self.redis_client.build_key("auth", "session", session_id)
         return self.redis_client.set_json(key, data, self.expire_seconds)
     
     def delete_session(self, session_id: str) -> bool:
         """Delete session from Redis"""
-        key = self.redis_client._format_key(settings.SESSION_KEY_PATTERN, session_id=session_id)
+        key = self.redis_client.build_key("auth", "session", session_id)
         return self.redis_client.delete_key(key)
     
     def find_session_by_username(self, username: str) -> Optional[tuple[str, Dict[str, Any]]]:
         """Find existing session by username"""
-        session_keys = self.redis_client.get_keys_by_pattern("session:*")
+        session_keys = self.redis_client.get_keys_by_pattern(
+            self.redis_client.build_pattern("auth", "session")
+        )
         
         for key in session_keys:
-            session_id = key.replace("session:", "")
+            session_id = key.split(":")[-1]
             data = self.get_session(session_id)
             if data and data.get("username") == username:
                 return session_id, data
